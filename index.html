@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bug Fixing Simulator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- START VIEW -->
+    <section id="view-start" class="view active">
+      <div class="card center">
+        <h1>Bug Fixing Simulator</h1>
+        <p>Sharpen your debugging skills across 20 bite-sized levels.</p>
+        <p class="muted">Practice JavaScript and Python bug fixing!</p>
+        <button id="btn-start" class="primary">Start</button>
+      </div>
+    </section>
+
+    <!-- LOGIN VIEW -->
+    <section id="view-login" class="view hidden">
+      <div class="login-container">
+        <div class="login-card">
+          <div class="login-header">
+            <div class="login-icon">🐞</div>
+            <h1>Bug Fixing Simulator</h1>
+            <p class="login-subtitle">Master debugging through 20 challenging levels in JavaScript & Python</p>
+          </div>
+          
+          <form id="login-form" class="login-form">
+            <div class="input-group">
+              <label for="username" class="input-label">
+                <span class="label-icon">👤</span>
+                Username
+              </label>
+              <input 
+                id="username" 
+                name="username" 
+                type="text" 
+                class="login-input"
+                placeholder="Enter your username" 
+                required 
+                autocomplete="off"
+              />
+            </div>
+            
+            <button type="submit" class="login-btn primary">
+              <span>Start Your Journey</span>
+              <span class="btn-arrow">→</span>
+            </button>
+          </form>
+          
+          <button id="btn-login-back" class="back-link">← Back to Start</button>
+          
+          <div class="login-features">
+            <div class="feature-item">
+              <span class="feature-icon">⏱️</span>
+              <span>Timed Challenges</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🏆</span>
+              <span>Score Tracking</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">💡</span>
+              <span>Hint System</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENU VIEW -->
+    <section id="view-menu" class="view hidden">
+      <header class="topbar">
+        <div class="brand">🐞 Bug Fixing Simulator</div>
+        <div class="topbar-actions">
+          <span id="welcome-name"></span>
+          <button id="btn-reset-progress" class="ghost small">Reset Progress</button>
+          <button id="btn-logout" class="ghost small">Logout</button>
+        </div>
+      </header>
+      <div class="container">
+        <div class="language-selector">
+          <label for="language-select">Language:</label>
+          <select id="language-select" class="language-dropdown">
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+          </select>
+        </div>
+        
+        <div class="stats-panel">
+          <div class="stat-card">
+            <div class="stat-value" id="total-score">0</div>
+            <div class="stat-label">Total Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="levels-completed">0/30</div>
+            <div class="stat-label">Levels Completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="avg-time">--</div>
+            <div class="stat-label">Avg Time</div>
+          </div>
+        </div>
+        
+        <h2>Progress Map</h2>
+        <div id="progress-map" class="progress-map"></div>
+        
+        <h2>Level Select</h2>
+        <div id="levels-grid" class="grid"></div>
+        <div class="menu-actions">
+          <button id="btn-continue" class="primary">Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- GAME VIEW -->
+    <section id="view-game" class="view hidden">
+      <header class="topbar">
+        <div class="brand">🐞 Bug Fixing Simulator</div>
+        <div class="topbar-actions">
+          <div class="hud-item">
+            <span class="hud-label">⏱️</span>
+            <span id="hud-timer" class="hud-value">60s</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">🏆</span>
+            <span id="hud-score" class="hud-value">0</span>
+          </div>
+          <span id="hud-level"></span>
+          <button id="btn-exit-to-menu" class="ghost small">Menu</button>
+        </div>
+      </header>
+      <div class="container">
+        <div class="card">
+          <h2 id="level-title">Level</h2>
+          
+          <!-- Description Panel -->
+          <div id="description-panel" class="description-panel hidden">
+            <div class="panel-header">
+              <strong>📖 Description</strong>
+              <button id="btn-close-desc" class="close-btn">✕</button>
+            </div>
+            <p id="level-description" class="description-text"></p>
+          </div>
+
+          <!-- Hint Panel -->
+          <div id="hint-panel" class="hint-panel hidden">
+            <div class="panel-header">
+              <strong>💡 Hint <span id="hint-number">1/3</span></strong>
+              <button id="btn-close-hint" class="close-btn">✕</button>
+            </div>
+            <p id="hint-text" class="hint-text"></p>
+          </div>
+
+          <div class="editor-section">
+            <div class="editor-header">
+              <span>Fix the buggy code below:</span>
+              <div class="editor-actions">
+                <button id="btn-show-desc" class="ghost small">📖 Description</button>
+                <button id="btn-show-hint" class="ghost small">💡 Get Hint</button>
+              </div>
+            </div>
+            <textarea id="code-editor" class="code-editor" spellcheck="false"></textarea>
+          </div>
+
+          <div class="game-actions">
+            <button id="btn-submit" class="primary">Submit Fix</button>
+            <button id="btn-restart" class="ghost">Restart Level</button>
+          </div>
+
+          <p id="feedback" class="feedback"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL: LEVEL COMPLETE -->
+    <div id="modal-overlay" class="overlay hidden" role="dialog" aria-modal="true">
+      <div class="modal">
+        <h3 id="modal-title">Level Complete!</h3>
+        <div class="score-summary">
+          <div class="score-item">
+            <span class="score-label">Time Bonus:</span>
+            <span id="modal-time-bonus" class="score-value">+0</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label">Level Score:</span>
+            <span id="modal-level-score" class="score-value">+100</span>
+          </div>
+          <div class="score-item total">
+            <span class="score-label">Total Score:</span>
+            <span id="modal-total-score" class="score-value">100</span>
+          </div>
+        </div>
+        <p id="modal-body">Nice work. What next?</p>
+        <div class="modal-actions">
+          <button id="modal-restart" class="ghost">Restart</button>
+          <button id="modal-next" class="primary">Next Level</button>
+          <button id="modal-quit" class="danger">Quit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="levels.js"></script>
+  <script src="levels-python.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
