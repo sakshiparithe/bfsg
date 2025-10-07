@@ -12,7 +12,7 @@
     <section id="view-start" class="view active">
       <div class="card center">
         <h1>Bug Fixing Simulator</h1>
-        <p>Sharpen your debugging skills across 20 bite-sized levels.</p>
+        <p>Sharpen your debugging skills across 15 bite-sized levels.</p>
         <p class="muted">Practice JavaScript and Python bug fixing!</p>
         <button id="btn-start" class="primary">Start</button>
       </div>
@@ -25,7 +25,7 @@
           <div class="login-header">
             <div class="login-icon">🐞</div>
             <h1>Bug Fixing Simulator</h1>
-            <p class="login-subtitle">Master debugging through 20 challenging levels in JavaScript & Python</p>
+            <p class="login-subtitle">Master debugging through 15 challenging levels in JavaScript & Python</p>
           </div>
           
           <form id="login-form" class="login-form">
@@ -71,23 +71,49 @@
       </div>
     </section>
 
+    <!-- LANGUAGE SELECTION VIEW -->
+    <section id="view-language" class="view hidden">
+      <div class="login-container">
+        <div class="login-card">
+          <div class="login-header">
+            <div class="login-icon">🌐</div>
+            <h1>Choose Your Language</h1>
+            <p class="login-subtitle">Select a programming language to start debugging</p>
+          </div>
+          
+          <div class="language-choice-grid">
+            <button id="btn-choose-javascript" class="language-choice-btn">
+              <div class="language-icon">📜</div>
+              <div class="language-name">JavaScript</div>
+              <div class="language-desc">Master JS debugging</div>
+            </button>
+            <button id="btn-choose-python" class="language-choice-btn">
+              <div class="language-icon">🐍</div>
+              <div class="language-name">Python</div>
+              <div class="language-desc">Master Python debugging</div>
+            </button>
+          </div>
+          
+          <button id="btn-language-back" class="back-link">← Back to Login</button>
+        </div>
+      </div>
+    </section>
+
     <!-- MENU VIEW -->
     <section id="view-menu" class="view hidden">
       <header class="topbar">
         <div class="brand">🐞 Bug Fixing Simulator</div>
         <div class="topbar-actions">
           <span id="welcome-name"></span>
+          <button id="btn-view-scoreboard" class="ghost small">🏆 Scoreboard</button>
           <button id="btn-reset-progress" class="ghost small">Reset Progress</button>
           <button id="btn-logout" class="ghost small">Logout</button>
         </div>
       </header>
       <div class="container">
-        <div class="language-selector">
-          <label for="language-select">Language:</label>
-          <select id="language-select" class="language-dropdown">
-            <option value="javascript">JavaScript</option>
-            <option value="python">Python</option>
-          </select>
+        <div class="language-display">
+          <span class="language-display-label">Selected Language:</span>
+          <span id="current-language-display" class="language-display-value">JavaScript</span>
         </div>
         
         <div class="stats-panel">
@@ -112,6 +138,50 @@
         <div id="levels-grid" class="grid"></div>
         <div class="menu-actions">
           <button id="btn-continue" class="primary">Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCOREBOARD VIEW -->
+    <section id="view-scoreboard" class="view hidden">
+      <header class="topbar">
+        <div class="brand">🐞 Bug Fixing Simulator</div>
+        <div class="topbar-actions">
+          <button id="btn-scoreboard-back" class="ghost small">← Back to Menu</button>
+        </div>
+      </header>
+      <div class="container">
+        <div class="scoreboard-header">
+          <h1>🏆 Global Scoreboard</h1>
+          <p class="scoreboard-subtitle">Top players across all languages</p>
+        </div>
+        
+        <div class="scoreboard-filters">
+          <button id="filter-all" class="filter-btn active">All</button>
+          <button id="filter-javascript" class="filter-btn">JavaScript</button>
+          <button id="filter-python" class="filter-btn">Python</button>
+        </div>
+        
+        <div class="scoreboard-container">
+          <table class="scoreboard-table">
+            <thead>
+              <tr>
+                <th class="rank-col">Rank</th>
+                <th class="name-col">Player</th>
+                <th class="language-col">Language</th>
+                <th class="score-col">Score</th>
+                <th class="levels-col">Levels</th>
+                <th class="time-col">Avg Time</th>
+              </tr>
+            </thead>
+            <tbody id="scoreboard-body">
+              <!-- Scoreboard rows will be inserted here -->
+            </tbody>
+          </table>
+          <div id="scoreboard-empty" class="scoreboard-empty hidden">
+            <div class="empty-icon">📊</div>
+            <p>No scores yet. Be the first to complete a level!</p>
+          </div>
         </div>
       </div>
     </section>

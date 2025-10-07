@@ -3,7 +3,9 @@
 const VIEWS = {
   start: document.getElementById('view-start'),
   login: document.getElementById('view-login'),
+  language: document.getElementById('view-language'),
   menu: document.getElementById('view-menu'),
+  scoreboard: document.getElementById('view-scoreboard'),
   game: document.getElementById('view-game'),
 };
 
@@ -14,17 +16,29 @@ const els = {
   loginForm: document.getElementById('login-form'),
   username: document.getElementById('username'),
   btnLoginBack: document.getElementById('btn-login-back'),
+  // Language Selection
+  btnChooseJavaScript: document.getElementById('btn-choose-javascript'),
+  btnChoosePython: document.getElementById('btn-choose-python'),
+  btnLanguageBack: document.getElementById('btn-language-back'),
   // Menu
   welcomeName: document.getElementById('welcome-name'),
   levelsGrid: document.getElementById('levels-grid'),
   btnContinue: document.getElementById('btn-continue'),
   btnLogout: document.getElementById('btn-logout'),
   btnResetProgress: document.getElementById('btn-reset-progress'),
+  btnViewScoreboard: document.getElementById('btn-view-scoreboard'),
   totalScore: document.getElementById('total-score'),
   levelsCompleted: document.getElementById('levels-completed'),
   avgTime: document.getElementById('avg-time'),
   progressMap: document.getElementById('progress-map'),
-  languageSelect: document.getElementById('language-select'),
+  currentLanguageDisplay: document.getElementById('current-language-display'),
+  // Scoreboard
+  scoreboardBody: document.getElementById('scoreboard-body'),
+  scoreboardEmpty: document.getElementById('scoreboard-empty'),
+  btnScoreboardBack: document.getElementById('btn-scoreboard-back'),
+  filterAll: document.getElementById('filter-all'),
+  filterJavaScript: document.getElementById('filter-javascript'),
+  filterPython: document.getElementById('filter-python'),
   // Game
   hudLevel: document.getElementById('hud-level'),
   hudTimer: document.getElementById('hud-timer'),
@@ -57,8 +71,7 @@ const els = {
 
 const STORAGE = {
   name: 'bfs_username',
-  progress: 'bfs_progress', // { highestUnlocked, lastLevel, totalScore, levelScores: {}, levelTimes: {} }
-  language: 'bfs_language', // Current selected language
+  allUsers: 'bfs_all_users', // Store all user data: { username: { language: { progress } } }
 };
 
 const TIMER_DURATION = 60; // seconds per level
@@ -68,14 +81,21 @@ const TIME_BONUS_MULTIPLIER = 2; // 2 points per second remaining
 // Language management
 let currentLanguage = 'javascript';
 let currentLevels = LEVELS;
-const TOTAL_LEVELS = 20;
+const TOTAL_LEVELS = 15;
 
 function getLanguage() {
-  return localStorage.getItem(STORAGE.language) || 'javascript';
+  const username = getUser();
+  if (!username) return 'javascript';
+  const userData = getUserData(username);
+  return userData.currentLanguage || 'javascript';
 }
 
 function setLanguage(lang) {
-  localStorage.setItem(STORAGE.language, lang);
+  const username = getUser();
+  if (!username) return;
+  const userData = getUserData(username);
+  userData.currentLanguage = lang;
+  saveUserData(username, userData);
   currentLanguage = lang;
   currentLevels = lang === 'python' ? PYTHON_LEVELS : LEVELS;
 }
@@ -90,31 +110,71 @@ function clearUser() {
   localStorage.removeItem(STORAGE.name);
 }
 
-function getProgress() {
-  const key = `${STORAGE.progress}_${currentLanguage}`;
-  const raw = localStorage.getItem(key);
-  if (!raw) return { highestUnlocked: 1, lastLevel: 1, totalScore: 0, levelScores: {}, levelTimes: {} };
-  try { 
-    const data = JSON.parse(raw);
-    // Ensure all fields exist
-    return {
-      highestUnlocked: data.highestUnlocked || 1,
-      lastLevel: data.lastLevel || 1,
-      totalScore: data.totalScore || 0,
-      levelScores: data.levelScores || {},
-      levelTimes: data.levelTimes || {},
-    };
+// Get all users data from localStorage
+function getAllUsersData() {
+  const raw = localStorage.getItem(STORAGE.allUsers);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
   } catch {
-    return { highestUnlocked: 1, lastLevel: 1, totalScore: 0, levelScores: {}, levelTimes: {} };
+    return {};
   }
 }
-function setProgress(p) {
-  const key = `${STORAGE.progress}_${currentLanguage}`;
-  localStorage.setItem(key, JSON.stringify(p));
+
+// Save all users data to localStorage
+function saveAllUsersData(data) {
+  localStorage.setItem(STORAGE.allUsers, JSON.stringify(data));
 }
+
+// Get specific user's data
+function getUserData(username) {
+  const allUsers = getAllUsersData();
+  if (!allUsers[username]) {
+    allUsers[username] = {
+      currentLanguage: 'javascript',
+      javascript: { highestUnlocked: 1, lastLevel: 1, totalScore: 0, levelScores: {}, levelTimes: {} },
+      python: { highestUnlocked: 1, lastLevel: 1, totalScore: 0, levelScores: {}, levelTimes: {} }
+    };
+  }
+  return allUsers[username];
+}
+
+// Save specific user's data
+function saveUserData(username, userData) {
+  const allUsers = getAllUsersData();
+  allUsers[username] = userData;
+  saveAllUsersData(allUsers);
+}
+
+function getProgress() {
+  const username = getUser();
+  if (!username) return { highestUnlocked: 1, lastLevel: 1, totalScore: 0, levelScores: {}, levelTimes: {} };
+  const userData = getUserData(username);
+  const langData = userData[currentLanguage];
+  if (!langData) return { highestUnlocked: 1, lastLevel: 1, totalScore: 0, levelScores: {}, levelTimes: {} };
+  return {
+    highestUnlocked: langData.highestUnlocked || 1,
+    lastLevel: langData.lastLevel || 1,
+    totalScore: langData.totalScore || 0,
+    levelScores: langData.levelScores || {},
+    levelTimes: langData.levelTimes || {},
+  };
+}
+
+function setProgress(p) {
+  const username = getUser();
+  if (!username) return;
+  const userData = getUserData(username);
+  userData[currentLanguage] = p;
+  saveUserData(username, userData);
+}
+
 function resetProgress() {
-  const key = `${STORAGE.progress}_${currentLanguage}`;
-  localStorage.setItem(key, JSON.stringify({ highestUnlocked: 1, lastLevel: 1, totalScore: 0, levelScores: {}, levelTimes: {} }));
+  const username = getUser();
+  if (!username) return;
+  const userData = getUserData(username);
+  userData[currentLanguage] = { highestUnlocked: 1, lastLevel: 1, totalScore: 0, levelScores: {}, levelTimes: {} };
+  saveUserData(username, userData);
 }
 
 function showView(name) {
@@ -126,8 +186,15 @@ function showView(name) {
 // Navigation
 els.btnStart.addEventListener('click', () => {
   const hasUser = !!getUser();
-  showView(hasUser ? 'menu' : 'login');
-  if (hasUser) renderMenu();
+  if (hasUser) {
+    // Load user's language and show menu
+    const lang = getLanguage();
+    setLanguage(lang);
+    renderMenu();
+    showView('menu');
+  } else {
+    showView('login');
+  }
 });
 
 els.btnLoginBack.addEventListener('click', () => {
@@ -139,15 +206,16 @@ els.loginForm.addEventListener('submit', (e) => {
   const name = els.username.value.trim();
   if (!name) return;
   setUser(name);
-  // Initialize progress on first login
-  const progress = getProgress();
-  if (!progress || !progress.highestUnlocked) resetProgress();
-  renderMenu();
-  showView('menu');
+  // Initialize user data if new user
+  getUserData(name);
+  // Show language selection page
+  showView('language');
 });
 
 els.btnLogout.addEventListener('click', () => {
   clearUser();
+  currentLanguage = 'javascript';
+  currentLevels = LEVELS;
   showView('login');
 });
 
@@ -167,6 +235,10 @@ els.btnContinue.addEventListener('click', () => {
 function renderMenu() {
   const name = getUser();
   els.welcomeName.textContent = name ? `Hi, ${name}` : '';
+  
+  // Update language display
+  els.currentLanguageDisplay.textContent = currentLanguage === 'javascript' ? 'JavaScript' : 'Python';
+  
   const progress = getProgress();
   const { highestUnlocked, lastLevel, totalScore, levelScores, levelTimes } = progress;
   
@@ -441,18 +513,162 @@ els.btnExitToMenu.addEventListener('click', () => {
   showView('menu');
 });
 
-// Language selector
-els.languageSelect.addEventListener('change', (e) => {
-  setLanguage(e.target.value);
+// Language selector removed - users choose language on language selection page
+
+// Language selection page handlers
+els.btnChooseJavaScript.addEventListener('click', () => {
+  setLanguage('javascript');
   renderMenu();
+  showView('menu');
 });
+
+els.btnChoosePython.addEventListener('click', () => {
+  setLanguage('python');
+  renderMenu();
+  showView('menu');
+});
+
+els.btnLanguageBack.addEventListener('click', () => {
+  clearUser();
+  showView('login');
+});
+
+// Scoreboard navigation
+els.btnViewScoreboard.addEventListener('click', () => {
+  renderScoreboard('all');
+  showView('scoreboard');
+});
+
+els.btnScoreboardBack.addEventListener('click', () => {
+  renderMenu();
+  showView('menu');
+});
+
+// Scoreboard filters
+let currentFilter = 'all';
+
+els.filterAll.addEventListener('click', () => {
+  currentFilter = 'all';
+  updateFilterButtons();
+  renderScoreboard('all');
+});
+
+els.filterJavaScript.addEventListener('click', () => {
+  currentFilter = 'javascript';
+  updateFilterButtons();
+  renderScoreboard('javascript');
+});
+
+els.filterPython.addEventListener('click', () => {
+  currentFilter = 'python';
+  updateFilterButtons();
+  renderScoreboard('python');
+});
+
+function updateFilterButtons() {
+  els.filterAll.classList.toggle('active', currentFilter === 'all');
+  els.filterJavaScript.classList.toggle('active', currentFilter === 'javascript');
+  els.filterPython.classList.toggle('active', currentFilter === 'python');
+}
+
+// Scoreboard rendering
+function renderScoreboard(filter = 'all') {
+  const allUsers = getAllUsersData();
+  const scoreboardData = [];
+  
+  // Collect all user scores for each language
+  Object.keys(allUsers).forEach(username => {
+    const userData = allUsers[username];
+    
+    // JavaScript scores
+    if (filter === 'all' || filter === 'javascript') {
+      const jsData = userData.javascript;
+      if (jsData && jsData.totalScore > 0) {
+        const completedLevels = Object.keys(jsData.levelScores || {}).length;
+        const times = Object.values(jsData.levelTimes || {});
+        const avgTime = times.length > 0 ? Math.floor(times.reduce((sum, t) => sum + t, 0) / times.length) : 0;
+        
+        scoreboardData.push({
+          username,
+          language: 'javascript',
+          score: jsData.totalScore,
+          completedLevels,
+          avgTime
+        });
+      }
+    }
+    
+    // Python scores
+    if (filter === 'all' || filter === 'python') {
+      const pyData = userData.python;
+      if (pyData && pyData.totalScore > 0) {
+        const completedLevels = Object.keys(pyData.levelScores || {}).length;
+        const times = Object.values(pyData.levelTimes || {});
+        const avgTime = times.length > 0 ? Math.floor(times.reduce((sum, t) => sum + t, 0) / times.length) : 0;
+        
+        scoreboardData.push({
+          username,
+          language: 'python',
+          score: pyData.totalScore,
+          completedLevels,
+          avgTime
+        });
+      }
+    }
+  });
+  
+  // Sort by score (descending)
+  scoreboardData.sort((a, b) => b.score - a.score);
+  
+  // Render scoreboard
+  const currentUser = getUser();
+  els.scoreboardBody.innerHTML = '';
+  
+  if (scoreboardData.length === 0) {
+    els.scoreboardEmpty.classList.remove('hidden');
+    document.querySelector('.scoreboard-table').style.display = 'none';
+  } else {
+    els.scoreboardEmpty.classList.add('hidden');
+    document.querySelector('.scoreboard-table').style.display = 'table';
+    
+    scoreboardData.forEach((entry, index) => {
+      const rank = index + 1;
+      const row = document.createElement('tr');
+      
+      // Highlight current user's row
+      if (entry.username === currentUser && entry.language === currentLanguage) {
+        row.classList.add('current-user');
+      }
+      
+      // Rank badge
+      let rankBadgeClass = '';
+      if (rank === 1) rankBadgeClass = 'gold';
+      else if (rank === 2) rankBadgeClass = 'silver';
+      else if (rank === 3) rankBadgeClass = 'bronze';
+      
+      row.innerHTML = `
+        <td class="rank-col">
+          <div class="rank-badge ${rankBadgeClass}">${rank}</div>
+        </td>
+        <td class="name-col">${entry.username}</td>
+        <td class="language-col">
+          <span class="language-badge ${entry.language}">${entry.language}</span>
+        </td>
+        <td class="score-col">${entry.score}</td>
+        <td class="levels-col">${entry.completedLevels}/${TOTAL_LEVELS}</td>
+        <td class="time-col">${entry.avgTime}s</td>
+      `;
+      
+      els.scoreboardBody.appendChild(row);
+    });
+  }
+}
 
 // Bootstrap
 (function init() {
   // Initialize language
   const savedLang = getLanguage();
   setLanguage(savedLang);
-  els.languageSelect.value = savedLang;
   
   const name = getUser();
   if (name) {
